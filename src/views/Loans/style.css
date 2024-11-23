@@ -1,0 +1,22 @@
+.loan-data-report table,
+.loan-data-report table td,
+.loan-data-report table th {
+    border: 1px solid black;
+}
+
+.loan-data-report table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.loan-data-report table th {
+    height: 30px;
+}
+.loan-data-report h5 {
+    font-weight: bold;
+}
+.profile-pic {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
+}

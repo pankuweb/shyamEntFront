@@ -1,0 +1,279 @@
+import React, { useEffect, useState } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
+import { Formik } from 'formik';
+import { Card, Grid, CardContent, Button } from '@material-ui/core';
+import { gridSpacing } from '../../store/constant';
+import { useSelector, useDispatch } from 'react-redux';
+import { connect } from 'react-redux';
+import '@coreui/coreui/dist/css/coreui.css';
+import { CNavLink, CBadge } from '@coreui/react';
+import { CDataTable } from '@coreui/react';
+import { closeLoan, filteredLoansBetweenTwoDates, loanList } from '../../actions/loan';
+import SaleReport from '../Reports/SaleReport';
+
+const useStyles = makeStyles({
+    table: {
+        minWidth: 350,
+    },
+    imgproduct: {
+        width: '20px',
+        height: 'auto',
+    },
+    title: {
+        background: '#3f51b5',
+        color: '#fff',
+        textAlign: 'center',
+        padding: '10px',
+    },
+    view: {
+        background: '#eee',
+        color: '#fff',
+    },
+    edit: { background: '#4CAF50', color: '#fff' },
+    delete: { background: '#d11a2a', color: '#fff' },
+    icons: {
+        width: '18px',
+        height: '18px',
+    },
+    flex: {
+        display: 'flex',
+        alignItems: 'center',
+    },
+    filterInputs: {
+        margin: '0px 10px ',
+    },
+    button: {
+        padding: '5px',
+    },
+});
+
+const Sale = () => {
+    const [see, setSee] = useState('show');
+    const ListLoans = useSelector((state) => state.loan);
+    const AllLoans = ListLoans?.list?.result ? ListLoans?.list?.result : ListLoans?.list?.loan;
+    const dispatch = useDispatch();
+    const classes = useStyles();
+    let a = '';
+
+    const filteredLoanList = AllLoans?.sort((a, b) => a.createdAt - b.createdAt);
+    const usersData = filteredLoanList?.map((item, index) => {
+        return {
+            totalIns: item?.installments?.reduce((accumulator, current) => accumulator + current.amount, 0),
+            loanNo: item?.loanNo?.toString()?.length < 2 ? `0${item?.loanNo}` : item?.loanNo,
+            customer: `${item?.customer?.firstName} ${item?.customer?.lastName}`,
+            amount: item?.totalBillAmount,
+            loanAmount: item?.loanAmount,
+            monthlyInstallment: item?.monthlyInstallment,
+            Action: item,
+        };
+    });
+
+    const getId = (_id) => {
+        return _id;
+    };
+    const CloseLoan = (id) => {
+        dispatch(closeLoan(getId(id)));
+        setTimeout(() => {
+            dispatch(loanList());
+        }, 2000);
+    };
+    const fields = [
+        { key: 'loanNo', _style: { width: '10%' } },
+        { key: 'customer', _style: { width: '10%' } },
+        { key: 'amount', _style: { width: '10%' } },
+        { key: 'loanAmount', _style: { width: '10%' } },
+        { key: 'monthlyInstallment', _style: { width: '10%' } },
+        {
+            key: 'Action',
+            _style: { width: '10%' },
+        },
+    ];
+
+    useEffect(() => {
+        dispatch(loanList());
+    }, [dispatch]);
+
+    // Total
+    const TotalAmounts = filteredLoanList?.reduce((accumulator, current) => accumulator + current.totalBillAmount, 0);
+    const TotalDownPayments = filteredLoanList?.reduce((accumulator, current) => accumulator + current.downPayment, 0);
+    const TotalLoanAmounts = filteredLoanList?.reduce(
+        (accumulator, current) => accumulator + (current.loanAmount / 100) * current.interest + current.loanAmount,
+        0
+    );
+    const TotalPendingAmount = usersData?.reduce((accumulator, current) => accumulator + current.totalIns, 0);
+    const pending = TotalDownPayments + TotalLoanAmounts - (TotalPendingAmount + TotalDownPayments);
+
+    const check = () => {
+        if (see == 'hide') {
+            setSee('show');
+        } else {
+            setSee('hide');
+        }
+    };
+    return (
+        <Grid container spacing={gridSpacing}>
+            <Grid item xs={12}>
+                <Card>
+                    <h3 className={classes.title}>Total Sale</h3>
+                    <Formik
+                        initialValues={{
+                            start: '',
+                            end: '',
+                        }}
+                        enableReinitialize={true}
+                        onSubmit={(values) => {
+                            dispatch(filteredLoansBetweenTwoDates(values.start, values.end));
+                        }}
+                    >
+                        {({ values, errors, touched, handleBlur, handleChange, handleSubmit }) => (
+                            <form
+                                noValidate
+                                onSubmit={handleSubmit}
+                                id="json-form"
+                                className={classes.root}
+                                style={{ margin: '30px 0px 0px' }}
+                            >
+                                <Grid item xs={12} className={classes.flex}>
+                                    <Grid item xs={3} className={classes.filterInputs}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <label for="adharNo" class="form-label m-0 mr-2">
+                                                From
+                                            </label>
+                                            <input
+                                                type="date"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                class="form-control"
+                                                name="start"
+                                                aria-describedby="date"
+                                            />
+                                        </div>
+                                    </Grid>
+                                    <Grid item xs={3} className={classes.filterInputs}>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <label for="adharNo" class="form-label m-0 mr-2">
+                                                To
+                                            </label>
+                                            <input
+                                                type="date"
+                                                onChange={handleChange}
+                                                onBlur={handleBlur}
+                                                class="form-control"
+                                                name="end"
+                                                aria-describedby="date"
+                                            />
+                                        </div>
+                                    </Grid>
+                                    <Grid item xs={2} className={classes.filterInputs}>
+                                        <Button type="submit" variant="contained" color="primary" className={classes.button}>
+                                            Filter
+                                        </Button>
+                                    </Grid>
+                                    <Grid item xs={3} className={classes.filterInputs}>
+                                        <SaleReport loans={filteredLoanList ? filteredLoanList : AllLoans} />
+                                    </Grid>
+                                    <Grid item xs={2} className={classes.filterInputs}>
+                                        <Button
+                                            type="submit"
+                                            variant="contained"
+                                            color="primary"
+                                            className={classes.button}
+                                            onClick={check}
+                                        >
+                                            {see} Details
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            </form>
+                        )}
+                    </Formik>
+                    <CardContent className="p-2">
+                        <CDataTable
+                            items={usersData}
+                            fields={fields}
+                            tableFilter
+                            itemsPerPageSelect
+                            itemsPerPage={50}
+                            sorter
+                            pagination
+                            scopedSlots={{
+                                Action: (item) => (
+                                    <td className="py-2 d-flex">
+                                        <CNavLink className="p-0 mx-2" to={`/loan/detail/${item?.Action?._id}`}>
+                                            <CBadge className="p-2" color="dark">
+                                                View
+                                            </CBadge>
+                                        </CNavLink>
+                                        <CNavLink className="p-0" to={`/loan/edit-loan/${item?.Action?._id}`}>
+                                            <CBadge className="p-2" color="success">
+                                                Edit
+                                            </CBadge>
+                                        </CNavLink>
+                                        <CNavLink className="p-0 mx-2" to={`/loan/add-installment/${item?.Action?._id}`}>
+                                            <CBadge className="p-2" color="success">
+                                                Ins.
+                                            </CBadge>
+                                        </CNavLink>
+                                        <CNavLink className="p-0" to="" onClick={() => CloseLoan(item?.Action?._id)}>
+                                            <CBadge className="p-2" color="danger">
+                                                Close
+                                            </CBadge>
+                                        </CNavLink>
+                                        <CNavLink className="p-0 mx-2" to={`/loan/download-loan/${item?.Action?._id}`}>
+                                            <CBadge className="p-2" style={{ backgroundColor: '#3f51b5', color: '#fff' }}>
+                                                Download
+                                            </CBadge>
+                                        </CNavLink>
+                                    </td>
+                                ),
+                            }}
+                        />
+                        <Grid item xs={12} className={classes.filterInputs}>
+                            <Grid item xs={12} style={{ display: 'flex' }}>
+                                <Grid item xs={6} className={classes.filterInputs}></Grid>
+                                <Grid item xs={6} className={classes.filterInputs}>
+                                    <table class={`table table-bordered table-sm ${see}`}>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <b>Total Sale</b>
+                                                </td>
+                                                <td>{TotalAmounts ? TotalAmounts : 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <b>Total Down Payments</b>
+                                                </td>
+                                                <td>{TotalDownPayments ? TotalDownPayments : 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <b>Total Loan Amounts(Interest Included)</b>
+                                                </td>
+                                                <td>{TotalLoanAmounts ? TotalLoanAmounts : 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <b>Total Installments Amounts</b>
+                                                </td>
+                                                <td>{TotalPendingAmount ? TotalPendingAmount : 0}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <b>Total Pending Amounts</b>
+                                                </td>
+                                                <td>{pending ? pending : ''}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </Grid>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
+            </Grid>
+        </Grid>
+    );
+};
+
+export default connect(null, { loanList })(Sale);

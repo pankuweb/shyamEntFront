@@ -1,0 +1,8 @@
+.add-new {
+    text-align: right;
+    position: absolute;
+    top: 0px !important;
+    z-index: 999999;
+    right: 18px;
+    margin-top: 10px;
+}

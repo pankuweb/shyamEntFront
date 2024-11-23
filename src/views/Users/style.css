@@ -1,0 +1,46 @@
+.image-upload > input {
+    display: none;
+}
+/* Profile pic hover */
+.profilepic {
+    position: relative;
+}
+
+.profilepic:hover .profilepic__content {
+    opacity: 1;
+}
+
+.profilepic:hover .profilepic__image {
+    opacity: 0.5;
+    background-color: #131313b6;
+}
+
+.profilepic__content {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.profilepic__icon {
+    color: white;
+}
+
+.fas {
+    font-size: 20px;
+}
+.profilepic__image {
+    width: 100%;
+    height: 100%;
+    border-radius: 100px;
+    border: 1px solid #eee;
+}
